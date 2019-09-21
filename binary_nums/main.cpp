@@ -1,0 +1,23 @@
+//
+// Created by professor on 22.09.19.
+//
+
+#include <vector>
+#include <iostream>
+
+using namespace std;
+
+int		main() {
+	vector<int> bits;
+	int n;
+
+	cin >> n;
+	while (n > 0)
+	{
+		bits.push_back(n % 2);
+		n /= 2;
+	}
+	for (int i = bits.size() - 1; i >= 0; i--)
+		cout << bits[i];
+	return 0;
+}
