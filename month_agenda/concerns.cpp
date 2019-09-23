@@ -53,7 +53,7 @@ int 	main() {
 		} else if (option == "NEXT") {
 			//switching between months is cycled to avoid seg faults
 			//when current value + 1 is becoming exactly 12 we are nullifying the next_month value
-			const int next_month = current_month + 1 == 12 ? 0 : current_month + 1;
+			const int next_month = (current_month + 1) % 12;
 			const int  next_month_size = months[next_month].size();
 			const int  curr_month_size = months[current_month].size();
 
