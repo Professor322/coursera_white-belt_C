@@ -16,50 +16,65 @@
 
 using namespace std;
 
+void 	init_months_size(vector<vector<vector<string > > >& months) {
+	for (int i = 0; i < 7; i++) {
+		if (i % 2 == 0) {
+			months[i].resize(31);
+		} else if (i % 2 != 0) {
+			months[i].resize(i == 1 ? 28 : 30);
+		}
+	}
+	for (int i = 7; i < 12; i++) {
+		if (i % 2 != 0) {
+			months[i].resize(31);
+		} else {
+			months[i].resize(30);
+		}
+	}
+}
+
 int 	main() {
 	vector<vector<vector<string> > > months(12);
 	int q, current_month = 0;
 
 	cin >> q;
-	for (int i = 0; i < 12; ++i) {
-		if (i % 2 == 0) {
-			months[i].resize(31);
-		} else if (i == 1) {
-			months[i].resize(28);
-		} else {
-			months[i].resize(30);
-		}
-	}
+	//initialize months's lengths
+	init_months_size(months);
 	for (int i = 0; i < q; ++i) {
+
 		string option;
 		cin >> option;
 		if (option == "ADD") {
-			int index;
+			int day_index;
 			string s;
 
-			cin >> index >> s;
-			months[current_month][index - 1].push_back(s);
+			cin >> day_index >> s;
+			months[current_month][day_index - 1].push_back(s);
 		} else if (option == "NEXT") {
+			//switching between months is cycled to avoid seg faults
+			//when current value + 1 is becoming exactly 12 we are nullifying the next_month value
 			const int next_month = current_month + 1 == 12 ? 0 : current_month + 1;
-			if (current_month % 2 == 0) {
-				const int num_of_days = months[next_month].size();
+			const int  next_month_size = months[next_month].size();
+			const int  curr_month_size = months[current_month].size();
 
-				months[next_month] = months[current_month];
-				months[next_month].resize(num_of_days);
-				for (auto j = num_of_days; j < 31; ++j) {
-					months[next_month][num_of_days - 1].insert(end(months[next_month][num_of_days - 1]), begin(months[current_month][j]), end(months[current_month][j]));
+			months[next_month] = months[current_month];
+			months[next_month].resize(next_month_size);
+			//the need to copy values is only actual when next_month_size less than current_month_size
+			if (next_month_size < curr_month_size) {
+				//copy every action from the days which are going to be deleted in the next month to the last day of it
+				for (auto j = next_month_size; j < curr_month_size; ++j) {
+					months[next_month][next_month_size - 1].insert(end(months[next_month][next_month_size - 1]),
+							begin(months[current_month][j]), end(months[current_month][j]));
 				}
-			} else if (current_month % 2 != 0) {
-				months[next_month] = months[current_month];
-				months[next_month].resize(31);
 			}
+			//switch to the next month
 			current_month = next_month;
 		} else if (option == "DUMP") {
-			int index;
+			int day_index;
 
-			cin >> index;
-			cout << months[current_month][index - 1].size() << " ";
-			for (auto action : months[current_month][index - 1]) {
+			cin >> day_index;
+			cout << months[current_month][day_index - 1].size() << " ";
+			for (const string& action : months[current_month][day_index - 1]) {
 				cout << action << " ";
 			}
 			cout << endl;
