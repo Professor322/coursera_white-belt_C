@@ -29,9 +29,11 @@ public:
 		if (it != data.begin()) {
 			data[year].last_name = (--it)->second.last_name;
 		}
-		if (++it != data.end()) {
+		if (it != data.end()) {
 			while (++it != data.end()) {
-				it->second.first_name = first_name;
+				if (it->second.first_name.empty()) {
+					it->second.first_name = first_name;
+				}
 			}
 		}
 	}
@@ -41,55 +43,71 @@ public:
 		if (it != data.begin()) {
 			data[year].first_name = (--it)->second.first_name;
 		}
-		if (++it != data.end()) {
+		if (it != data.end()) {
 			while (++it != data.end()) {
-				it->second.last_name = last_name;
-			}
-		}
-	}
-	/*void PrintData() {
-		for (const auto& i : data) {
-			cout << i.first << " " << i.second.first_name << " " << i.second.last_name << endl;
-		}
-	}*/
-	string GetFullName(int year) {
-		it = data.begin();
-
-		if (year < it->first) {
-			return "Incognito";
-		} else {
-			string result;
-
-			while (next(it) != data.end()) {
-				if (it->first >= year && next(it)->first < year) {
-
+				if (it->second.last_name.empty()) {
+					it->second.last_name = last_name;
 				}
 			}
 		}
 	}
+	string GetFullName(int year) {
+		it = data.begin();
+
+		if (data.empty() || year < it->first) {
+			return "Incognito";
+		}
+		while (next(it) != data.end()) {
+			if (year >= it->first && year < next(it)->first) {
+				return FormatFullName();
+			}
+			it++;
+		}
+		return FormatFullName();
+	}
 private:
 	map<int, Persons_name> data;
 	map<int, Persons_name>::iterator it;
+	string	FormatFullName() {
+		if (it->second.first_name.empty()) {
+			return it->second.last_name + " with unknown first name";
+		} else if (it->second.last_name.empty()) {
+			return it->second.first_name + " with unknown last name";
+		} else {
+			return it->second.first_name + " " + it->second.last_name;
+		}
+	}
 };
 
 int main() {
+
 	Person person;
 
 	person.ChangeFirstName(1965, "Polina");
 	person.ChangeLastName(1967, "Sergeeva");
-/*	for (int year : {1900, 1965, 1990}) {
+	for (int year : {1900, 1965, 1990}) {
 		cout << person.GetFullName(year) << endl;
 	}
-*/
+
 	person.ChangeFirstName(1970, "Appolinaria");
-/*	for (int year : {1969, 1970}) {
+	for (int year : {1969, 1970}) {
 		cout << person.GetFullName(year) << endl;
 	}
-*/
+
 	person.ChangeLastName(1968, "Volkova");
-/*	for (int year : {1969, 1970}) {
+	for (int year : {1969, 1970}) {
 		cout << person.GetFullName(year) << endl;
-	}*/
-	//person.PrintData();
+	}
+
+	person.ChangeLastName(1960, "Pupsikova");
+	for (int year : {1900, 1965, 1990}) {
+		cout << person.GetFullName(year) << endl;
+	}
+
+	person.ChangeFirstName(1965, "Polina");
+	for (int year : {1964, 1965, 1966, 1967}) {
+		cout << person.GetFullName(year) << endl;
+	}
+
 	return 0;
 }
