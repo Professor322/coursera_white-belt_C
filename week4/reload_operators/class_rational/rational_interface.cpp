@@ -89,7 +89,7 @@ ostream&	operator<<(ostream& stream, const Rational& elem) {
 istream&		operator>>(istream& stream, Rational& elem) {
 	int numerator = 0;
 	int denominator = 1;
-	if (!stream.eof()) {
+	if (stream.tellg() != -1) {
 		stream >> numerator;
 		stream.ignore(1);
 		stream >> denominator;
@@ -97,7 +97,6 @@ istream&		operator>>(istream& stream, Rational& elem) {
 	}
 	return stream;
 }
-
 int main() {
 	{
 		ostringstream output;
@@ -129,8 +128,8 @@ int main() {
 			return 3;
 		}
 
-		cin >> r1;
-		cin >> r2;
+		input >> r1;
+		input >> r2;
 		cout << r1 << " " << r2 << endl;
 		correct = r1 == Rational(5, 7) && r2 == Rational(5, 4);
 		if (!correct) {
