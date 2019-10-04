@@ -63,25 +63,31 @@ class Database {
 public:
 	void AddEvent(const Date& date, const string& event) {
 		if (!event.empty())
-			data[date].insert(event);
+			dates[date].insert(event);
 	}
 	bool DeleteEvent(const Date& date, const string& event) {
-		if (data.count(date)) {
-			if (data[date].count(event)) {
-				data[date].erase(event);
+		if (dates.count(date)) {
+			if (dates[date].count(event)) {
+				dates[date].erase(event);
 				return true;
 			}
 		}
 		return false;
 	}
 	int  DeleteDate(const Date& date) {
-		int size = data[date].size();
-		data[date].clear();
+		int size = dates[date].size();
+		dates.erase(date);
 		return size;
 	}
-	/*void Find(const Date& date) const; */
+	pair<Date, set<string> > Find(const Date& date) const {
+		for (const auto& d : dates) {
+			if (d.first == date) {
+				return d;
+			}
+		}
+	}
 	void Print() const {
-		for (const auto& d : data) {
+		for (const auto& d : dates) {
 			cout << d.first << " ";
 			for (const auto& event : d.second) {
 				cout << event << " ";
@@ -90,7 +96,7 @@ public:
 		}
 	}
 private:
-	map<Date, set<string> > data;
+	map<Date, set<string> > dates;
 };
 
 void	ensure_delimeter(stringstream& ss) {
@@ -133,16 +139,33 @@ int main() {
 				Date date = ParseDate(ss, command);
 				ss >> event;
 				db.AddEvent(date, event);
+			} else if(option == "Find") {
+				Date date = ParseDate(ss, command);
+				pair<Date, set<string> > events = db.Find(date);
+				if (!events.second.empty()) {
+					for (const auto &e : events.second) {
+						cout << e << " ";
+					}
+					cout << endl;
+				}
 			} else if (option == "Del") {
 				Date date = ParseDate(ss, command);
 				if (!ss.eof()) {
 					ss >> event;
-					cout << (db.DeleteEvent(date, event) ? "Deleted successfully" : "Event not found") << endl;
+					if(db.DeleteEvent(date, event)) {
+						cout << "Deleted successfully" << endl;
+					} else {
+						cout << "Event not found" << endl;
+						exit(3);
+					}
 				} else {
 					cout << "Deleted " << db.DeleteDate(date) << " events" << endl;
 				}
 			} else if (option == "Print") {
 				db.Print();
+			} else {
+				cout << "Unknown command: " << option << endl;
+				exit(4);
 			}
 		}
 	}
