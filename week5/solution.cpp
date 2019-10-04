@@ -7,6 +7,7 @@
 #include <map>
 #include <set>
 #include <sstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -35,6 +36,13 @@ private:
 	int day;
 };
 
+ostream& operator <<(ostream& stream, const Date& date) {
+	stream << setw(4) << setfill('0') << date.GetYear() << "-"
+		   << setw(2) << setfill('0') << date.GetMonth() << "-"
+		   << setw(2) << setfill('0') << date.GetDay();
+	return stream;
+}
+
 bool operator<(const Date& lhs, const Date& rhs) {
 	if (lhs.GetYear() == rhs.GetYear()) {
 		if (lhs.GetMonth() == rhs.GetMonth())  {
@@ -54,7 +62,8 @@ bool operator ==(const Date& lhs, const Date& rhs) {
 class Database {
 public:
 	void AddEvent(const Date& date, const string& event) {
-		data[date].insert(event);
+		if (!event.empty())
+			data[date].insert(event);
 	}
 	bool DeleteEvent(const Date& date, const string& event) {
 		if (data.count(date)) {
@@ -65,42 +74,77 @@ public:
 		}
 		return false;
 	}
-	/*int  DeleteDate(const Date& date);
-	void Find(const Date& date) const;
-	void Print() const;*/
+	int  DeleteDate(const Date& date) {
+		int size = data[date].size();
+		data[date].clear();
+		return size;
+	}
+	/*void Find(const Date& date) const; */
+	void Print() const {
+		for (const auto& d : data) {
+			cout << d.first << " ";
+			for (const auto& event : d.second) {
+				cout << event << " ";
+			}
+			cout << endl;
+		}
+	}
 private:
 	map<Date, set<string> > data;
 };
 
-Date	ParseDate(stringstream& ss) {
-	int year, month, day;
-	ss >> year;
-	ss >> month;
-	ss >> day;
+void	ensure_delimeter(stringstream& ss) {
 	if (ss.peek() != '-') {
+		throw invalid_argument("Wrong date format:");
+	}
+	ss.ignore(1);
+}
 
+Date	ParseDate(stringstream& ss, const string& command) {
+	int year, month, day;
+
+	try {
+		ss >> year;
+		ensure_delimeter(ss);
+		ss >> month;
+		ensure_delimeter(ss);
+		ss >> day;
+	} catch(invalid_argument& i) {
+		cout << i.what() << command.substr(command.find(' ')) << endl;
+		exit(1);
 	}
 	try {
 		return Date(year, month, day);
 	} catch (const invalid_argument& i) {
 		cout << i.what() << endl;
+		exit(2);
 	}
 }
 
 int main() {
 	Database db;
+	string command, option, event;
 
-	string command;
-	string option;
 	while (getline(cin, command)) {
 		if (!command.empty()) {
 			stringstream ss(command);
 			ss >> option;
 			if (option == "Add") {
-
+				Date date = ParseDate(ss, command);
+				ss >> event;
+				db.AddEvent(date, event);
+			} else if (option == "Del") {
+				Date date = ParseDate(ss, command);
+				if (!ss.eof()) {
+					ss >> event;
+					cout << (db.DeleteEvent(date, event) ? "Deleted successfully" : "Event not found") << endl;
+				} else {
+					cout << "Deleted " << db.DeleteDate(date) << " events" << endl;
+				}
+			} else if (option == "Print") {
+				db.Print();
 			}
 		}
 	}
-
 	return 0;
 }
