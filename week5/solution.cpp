@@ -8,6 +8,7 @@
 #include <set>
 #include <sstream>
 #include <iomanip>
+#include <vector>
 
 using namespace std;
 
@@ -75,9 +76,12 @@ public:
 		return false;
 	}
 	int  DeleteDate(const Date& date) {
-		int size = dates[date].size();
-		dates[date].clear();
-		dates.erase(date);
+		int size = 0;
+		if (dates.count(date)) {
+			size = dates[date].size();
+			dates[date].clear();
+			dates.erase(date);
+		}
 		return size;
 	}
 	pair<Date, set<string> > Find(const Date& date) const {
@@ -86,14 +90,15 @@ public:
 				return d;
 			}
 		}
+		throw exception();
 	}
 	void Print() const {
 		for (const auto& d : dates) {
-			cout << d.first << " ";
-			for (const auto& event : d.second) {
-				cout << event << " ";
+			if (d.first.GetYear() >= 0) {
+				for (const auto &event : d.second) {
+					cout << d.first << " " << event << endl;
+				}
 			}
-			cout << endl;
 		}
 	}
 private:
@@ -116,10 +121,13 @@ Date	ParseDate(stringstream& ss, const string& command) {
 		ss >> month;
 		ensure_delimeter(ss);
 		ss >> day;
+		if (!ss.eof() && ss.peek() != ' ') {
+			throw invalid_argument("Wrong date format: ");
+		}
 	} catch(invalid_argument& i) {
 
 		cout << i.what()
-		<< command.substr(command.find(' ') + 1, command.find_last_of(' ') - command.find(' ')) << endl;
+		<< command.substr(command.find(' ') + 1, command.find_last_of(' ') - command.find(' ') - 1) << endl;
 		exit(1);
 	}
 	try {
@@ -132,26 +140,31 @@ Date	ParseDate(stringstream& ss, const string& command) {
 
 int main() {
 	Database db;
-	string command, option, event;
+	string command, option;
 
 	while (getline(cin, command)) {
 		if (!command.empty()) {
 			stringstream ss(command);
 			ss >> option;
 			if (option == "Add") {
+				string event;
 				Date date = ParseDate(ss, command);
 				ss >> event;
 				db.AddEvent(date, event);
 			} else if(option == "Find") {
 				Date date = ParseDate(ss, command);
-				pair<Date, set<string> > events = db.Find(date);
-				if (!events.second.empty()) {
-					for (const auto &e : events.second) {
-						cout << e << " ";
+				try {
+					pair<Date, set<string> > events = db.Find(date);
+					if (!events.second.empty()) {
+						for (const auto &e : events.second) {
+							cout << e << endl;
+						}
 					}
-					cout << endl;
+				} catch (const exception&) {
+					continue ;
 				}
 			} else if (option == "Del") {
+				string event;
 				Date date = ParseDate(ss, command);
 				if (!ss.eof()) {
 					ss >> event;
@@ -159,7 +172,6 @@ int main() {
 						cout << "Deleted successfully" << endl;
 					} else {
 						cout << "Event not found" << endl;
-						exit(3);
 					}
 				} else {
 					cout << "Deleted " << db.DeleteDate(date) << " events" << endl;
