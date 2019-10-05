@@ -76,6 +76,7 @@ public:
 	}
 	int  DeleteDate(const Date& date) {
 		int size = dates[date].size();
+		dates[date].clear();
 		dates.erase(date);
 		return size;
 	}
@@ -101,7 +102,7 @@ private:
 
 void	ensure_delimeter(stringstream& ss) {
 	if (ss.peek() != '-') {
-		throw invalid_argument("Wrong date format:");
+		throw invalid_argument("Wrong date format: ");
 	}
 	ss.ignore(1);
 }
@@ -116,7 +117,9 @@ Date	ParseDate(stringstream& ss, const string& command) {
 		ensure_delimeter(ss);
 		ss >> day;
 	} catch(invalid_argument& i) {
-		cout << i.what() << command.substr(command.find(' ')) << endl;
+
+		cout << i.what()
+		<< command.substr(command.find(' ') + 1, command.find_last_of(' ') - command.find(' ')) << endl;
 		exit(1);
 	}
 	try {
